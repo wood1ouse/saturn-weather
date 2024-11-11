@@ -129,6 +129,6 @@ services:
 #       - ./pgadmin_data/servers.json:/pgadmin4/servers.json
 #     depends_on:
 #       - cdm-spatial-historical-database
-# volumes:
+volumes:
   pgdata:
   kafka-broker:
