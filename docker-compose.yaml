@@ -117,18 +117,18 @@ services:
     # depends_on:
     #   - flights-cdm-spatial-historical-database
     
-  pgadmin:
-    container_name: pgadmin
-    image: dpage/pgadmin4:latest
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=mamontovmaxim77@gmail.com
-      - PGADMIN_DEFAULT_PASSWORD=zzz999zzz
-    ports:
-      - "5050:80"
-    volumes:
-      - ./pgadmin_data/servers.json:/pgadmin4/servers.json
-    depends_on:
-      - cdm-spatial-historical-database
-volumes:
+#   pgadmin:
+#     container_name: pgadmin
+#     image: dpage/pgadmin4:latest
+#     environment:
+#       - PGADMIN_DEFAULT_EMAIL=mamontovmaxim77@gmail.com
+#       - PGADMIN_DEFAULT_PASSWORD=zzz999zzz
+#     ports:
+#       - "5050:80"
+#     volumes:
+#       - ./pgadmin_data/servers.json:/pgadmin4/servers.json
+#     depends_on:
+#       - cdm-spatial-historical-database
+# volumes:
   pgdata:
   kafka-broker:
