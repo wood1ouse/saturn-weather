@@ -1,0 +1,134 @@
+services:
+  kafka-broker:
+    image: redpandadata/redpanda
+    command:
+      - redpanda start
+      - --kafka-addr PLAINTEXT://0.0.0.0:29093
+      - --advertise-kafka-addr PLAINTEXT://kafka-broker:29093
+      - --set redpanda.kafka_batch_max_bytes=200000000
+      - --set redpanda.kafka_request_max_bytes=200000000
+    ports:
+      - 29093:29093
+
+  producer:
+    image: node:18
+    build:
+      context: ./producers/weather-producer
+      dockerfile: Dockerfile
+    volumes:
+      - ./producers/weather-producer:/app
+    ports:
+      - '3004:3004'
+    command: npx tsx watch app/index.ts
+    environment:
+      KAFKA_BROKER: kafka-broker:29093
+    depends_on:
+      - kafka-broker
+    
+  translator:
+    image: node:18
+    build:
+      context: ./translators/weather-translators
+      dockerfile: Dockerfile
+    volumes:
+      - ./translators/weather-translator:/app
+      - ./scripts/wait-for-it.sh:/wait-for-it.sh
+    ports:
+      - '3005:3005'
+    command: ["./wait-for-it.sh", "cdm-spatial-historical-database:5433", "--", "npx", "tsx", "watch", "app/index.ts"]
+    environment:
+      KAFKA_BROKER: kafka-broker:29093
+      POSTGRES_USER: postgres
+      POSTGRES_HOST: cdm-spatial-historical-database
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: zzz999zzz
+      POSTGRES_PORT: 5433
+    depends_on:
+      - kafka-broker
+      - producer
+      - cdm-spatial-historical-database
+
+  cdm-spatial-historical-database:
+    image: postgis/postgis:latest
+    container_name: cdm-spatial-historical-database
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=zzz999zzz
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./translators/weather-translator/weather-historical-init/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5433"
+    command: postgres -p 5433 -c wal_level=logical -c max_replication_slots=4 -c max_wal_senders=4
+
+  cdm-spatial-historical-database-connect:
+    container_name: cdm-spatial-historical-database-connect
+    image: debezium/connect:2.7.3.Final
+    depends_on:
+      - kafka-broker
+      - cdm-spatial-historical-database
+    ports:
+      - "8084:8084"
+    environment:
+      BOOTSTRAP_SERVERS: "kafka-broker:29093"
+      GROUP_ID: "1"
+      CONFIG_STORAGE_TOPIC: "postgres.configs"
+      OFFSET_STORAGE_TOPIC: "postgres.offset"
+      STATUS_STORAGE_TOPIC: "postgres.status"
+      KAFKA_PRODUCER_MAX_REQUEST_SIZE: "2000000"
+      CONNECT_PRODUCER_MAX_REQUEST_SIZE: "2000000"
+      CONNECT_LISTENERS: 'http://cdm-spatial-historical-database-connect:8084'
+
+  processor:
+    image: node:18
+    build:
+      context: ./processors/weather-processor
+      dockerfile: Dockerfile
+    volumes:
+      - ./processors/weather-processor:/app
+    ports:
+      - '3006:3006'
+      - "8081:8081"
+    command: npx tsx watch app/index.ts
+    environment:
+      KAFKA_BROKER: kafka-broker:29093
+    depends_on:
+      - kafka-broker
+      - translator
+      - cdm-spatial-historical-database-connect
+
+  # flights-historical:
+    # image: node:18
+    # build:
+    #   context: ./historicals/flights-historical
+    #   dockerfile: Dockerfile
+    # volumes:
+    #   - ./historicals/flights-historical:/app
+    #   - ./scripts/wait-for-it.sh:/wait-for-it.sh
+    # ports:
+    #   - "3003:3003"
+    # command: ["./wait-for-it.sh", "flights-cdm-spatial-historical-database:5432", "--", "npx", "tsx", "watch", "app/index.ts"]  # Wait for Postgres to be ready
+    # environment:
+    #   POSTGRES_USER: postgres
+    #   POSTGRES_HOST: flights-cdm-spatial-historical-database
+    #   POSTGRES_DB: postgres
+    #   POSTGRES_PASSWORD: zzz999zzz
+    #   POSTGRES_PORT: 5432
+    # depends_on:
+    #   - flights-cdm-spatial-historical-database
+    
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=mamontovmaxim77@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=zzz999zzz
+    ports:
+      - "5050:80"
+    volumes:
+      - ./pgadmin_data/servers.json:/pgadmin4/servers.json
+    depends_on:
+      - cdm-spatial-historical-database
+volumes:
+  pgdata:
+  kafka-broker:

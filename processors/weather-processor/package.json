@@ -1,0 +1,24 @@
+{
+  "name": "weather-processor",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "geojson": "^0.5.0",
+    "interpolateheatmaplayer": "^1.6.2",
+    "kafkajs": "^2.2.4",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/geojson": "^7946.0.14",
+    "@types/node": "^22.7.9",
+    "@types/ws": "^8.5.12"
+  }
+}
