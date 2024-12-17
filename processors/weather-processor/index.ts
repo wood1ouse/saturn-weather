@@ -128,7 +128,7 @@ async function consume() {
 				if (response.payload && response.payload.after) {
 					const heatMapValues = HeatmapProcessorService.parseByProperty(
 						response.payload.after,
-						"precipitation",
+						"precipitation_probability",
 					);
 					console.log("PROCESSOR: Broadcasting values:", heatMapValues);
 					broadcastMessage(heatMapValues);

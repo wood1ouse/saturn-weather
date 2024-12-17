@@ -8,11 +8,11 @@ export interface Response {
 	elevation: number;
 	hourly_units: {
 		time: string;
-		precipitation: string;
+		precipitation_probability: string;
 	};
 	hourly: {
 		time: string[];
-		precipitation: number[];
+		precipitation_probability: number[];
 	};
 }
 
@@ -26,8 +26,8 @@ export interface WeatherStateProperties
 		| "elevation"
 		| "hourly_units"
 	> {
-	precipitation: number;
+		precipitation_probability: number;
 }
 
 export interface DiscreteProperties
-	extends Pick<WeatherStateProperties, "precipitation"> {}
+	extends Pick<WeatherStateProperties, "precipitation_probability"> {}

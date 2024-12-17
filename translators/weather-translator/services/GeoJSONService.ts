@@ -26,7 +26,7 @@ export class GeoJSONService {
 					timezone_abbreviation: state.timezone_abbreviation,
 					elevation: state.elevation,
 					hourly_units: state.hourly_units,
-					precipitation: state.hourly.precipitation[index],
+					precipitation_probability: state.hourly.precipitation_probability[index],
 				},
 			);
 		});

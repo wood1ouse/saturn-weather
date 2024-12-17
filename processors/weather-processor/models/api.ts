@@ -14,9 +14,9 @@ interface WeatherStateProperties {
 	elevation: number;
 	hourly_units: {
 		time: string;
-		precipitation: string;
+		precipitation_probability: string;
 	};
-	precipitation: number;
+	precipitation_probability: number;
 }
 
 export interface Response {
